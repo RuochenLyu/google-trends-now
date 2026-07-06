@@ -4,7 +4,7 @@
   "description": "Unofficial CLI and Node.js client for Google Trends Trending Now, with RSS fallback.",
   "type": "module",
   "bin": {
-    "google-trends-now": "./bin/google-trends-now.mjs"
+    "google-trends-now": "bin/google-trends-now.mjs"
   },
   "exports": {
     ".": {
