@@ -1,0 +1,52 @@
+{
+  "name": "google-trends-now",
+  "version": "1.0.0",
+  "description": "Unofficial CLI and Node.js client for Google Trends Trending Now, with RSS fallback.",
+  "type": "module",
+  "bin": {
+    "google-trends-now": "./bin/google-trends-now.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "types": "./src/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "bin",
+    "src",
+    "skills/google-trends-now",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "prepublishOnly": "npm test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "google-trends",
+    "trending-now",
+    "trends",
+    "cli",
+    "rss",
+    "hot-topics"
+  ],
+  "author": "Ruochen Lyu",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RuochenLyu/google-trends-now.git"
+  },
+  "homepage": "https://github.com/RuochenLyu/google-trends-now#readme",
+  "bugs": {
+    "url": "https://github.com/RuochenLyu/google-trends-now/issues"
+  }
+}

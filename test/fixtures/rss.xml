@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:ht="https://trends.google.com/trending/rss" version="2.0">
+  <channel>
+    <title>Daily Search Trends</title>
+    <item>
+      <title>space telescope</title>
+      <ht:approx_traffic>20,000+</ht:approx_traffic>
+      <pubDate>Mon, 06 Jul 2026 10:00:00 GMT</pubDate>
+      <ht:news_item>
+        <ht:news_item_title>Space telescope&apos;s camera spots new planet</ht:news_item_title>
+      </ht:news_item>
+    </item>
+    <item>
+      <title>market rally</title>
+      <ht:approx_traffic>5,000+</ht:approx_traffic>
+      <pubDate>Mon, 06 Jul 2026 09:00:00 GMT</pubDate>
+      <ht:news_item>
+        <ht:news_item_title>Markets open higher</ht:news_item_title>
+      </ht:news_item>
+    </item>
+  </channel>
+</rss>

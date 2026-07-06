@@ -1,0 +1,8 @@
+name: google-trends-now
+description: Call the google-trends-now CLI for Google Trends Trending Now hot-word discovery.
+version: 1.0.0
+commands:
+  trending: google-trends-now trending
+  rss: google-trends-now rss
+  categories: google-trends-now categories
+  healthcheck: google-trends-now healthcheck
