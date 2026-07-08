@@ -1,5 +1,5 @@
 export { categories, categoryRows } from "./categories.js";
-export { fetchTrendingNow } from "./client.js";
+export { fetchTrendingNews, fetchTrendingNow } from "./client.js";
 export {
   formatCsv,
   formatJson,
@@ -10,7 +10,9 @@ export { normalizeTrendingRow } from "./normalize.js";
 export { fetchTrendingRss, parseTrendingRssXml } from "./rss.js";
 
 export {
+  buildTrendingNewsRequest,
   buildTrendingNowRequest,
+  newsArticlesFromPayload,
   parseBatchexecuteResponse,
   trendingRowsFromPayload
 } from "./batchexecute.js";

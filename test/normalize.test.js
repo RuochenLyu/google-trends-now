@@ -43,3 +43,21 @@ test("normalizes numeric, numeric-string, and object-form categories", () => {
     { id: 17, name: "Sports" }
   ]);
 });
+
+test("normalizes news_refs triples from row index 11", async () => {
+  const { normalizeTrendingRow } = await import("../src/normalize.js");
+  const row = [];
+  row[0] = "solar eclipse";
+  row[11] = [[4704319673, "en", "US"], ["bad"], [4704184441, "es", "US"]];
+  const item = normalizeTrendingRow(row, { position: 1, geo: "US", hours: 48 });
+  assert.deepEqual(item.news_refs, [
+    { id: 4704319673, lang: "en", geo: "US" },
+    { id: 4704184441, lang: "es", geo: "US" }
+  ]);
+});
+
+test("news_refs defaults to an empty array", async () => {
+  const { normalizeTrendingRow } = await import("../src/normalize.js");
+  const item = normalizeTrendingRow(["q"], { position: 1 });
+  assert.deepEqual(item.news_refs, []);
+});

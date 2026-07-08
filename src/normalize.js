@@ -68,6 +68,13 @@ export function normalizeTrendingRow(row, options = {}) {
   const increasePercentage = row?.[8] ?? null;
   const trendBreakdown = Array.isArray(row?.[9]) ? row[9].filter((item) => typeof item === "string") : [];
   const rawCategories = Array.isArray(row?.[10]) ? row[10] : [];
+  // Row index 11 carries `[article_id, lang, geo]` news references, resolvable
+  // in bulk via `fetchTrendingNews`.
+  const newsRefs = Array.isArray(row?.[11])
+    ? row[11]
+      .filter((ref) => Array.isArray(ref) && Number.isFinite(Number(ref[0])))
+      .map((ref) => ({ id: Number(ref[0]), lang: String(ref[1] ?? ""), geo: String(ref[2] ?? "") }))
+    : [];
   const normalizedQuery = typeof row?.[12] === "string" && row[12] ? row[12] : query;
 
   return {
@@ -84,6 +91,7 @@ export function normalizeTrendingRow(row, options = {}) {
     end_timestamp: endTimestamp,
     active: endTimestamp === null,
     trend_breakdown: trendBreakdown,
+    news_refs: newsRefs,
     categories: rawCategories.map(normalizeCategory),
     explore_url: buildExploreUrl(normalizedQuery || query, geo, options.hours ?? DEFAULTS.hours),
     source: "google_trending_now"

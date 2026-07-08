@@ -11,10 +11,12 @@ All notable changes to this project will be documented in this file.
 ### English
 - `fetchTrendingNow({ includeRaw: true })` / CLI `--include-raw`: attach the parsed batchexecute payload (pre-normalization) as `raw` on the envelope. Google-path only; fallback/failure envelopes carry `raw: null`. Default output is unchanged (guarded by a key-set regression test).
 - `limit: "all"` (SDK) / `--limit all` (CLI): disable row-pool truncation and expose the full Trending Now pool (observed ~2000+ rows on a 168h/US window vs the default cap of 100).
+- `fetchTrendingNews(refs)`: resolve the news-article references carried on each trending row (new `items[].news_refs`, from the w4opAf batch RPC) into `{ title, url, source, published_at, thumbnail_url }`. Google-path only. Items (both paths) now include a `news_refs` array — an additive schema change.
 
 ### 简体中文
 - `fetchTrendingNow({ includeRaw: true })` / CLI `--include-raw`：在信封上附加 normalize 前的原始 batchexecute payload（`raw` 字段）。仅 Google 主路径提供；降级/失败信封为 `raw: null`。默认输出不变（键集回归测试钉住）。
 - `limit: "all"`（SDK）/ `--limit all`（CLI）：关闭行池截断，暴露完整 Trending Now 池（168h/US 实测约 2000+ 行，默认上限 100）。
+- `fetchTrendingNews(refs)`：把 trending 行携带的新闻引用（新增 `items[].news_refs`，来自 w4opAf 批量 RPC）解析为 `{ title, url, source, published_at, thumbnail_url }`。仅 Google 主路径。两条路径的 items 均新增 `news_refs` 数组——加法式 schema 变更。
 
 ## 1.0.0 - 2026-07-06
 

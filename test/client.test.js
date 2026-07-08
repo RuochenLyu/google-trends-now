@@ -56,3 +56,32 @@ test('limit "all" returns the full fixture pool', async () => {
   assert.equal(limited.items.length, 1);
   assert.equal(all.items.length, 2);
 });
+
+test("fetchTrendingNews resolves refs into articles via w4opAf", async () => {
+  const { fetchTrendingNews } = await import("../src/client.js");
+  const articles = [[
+    "Sample headline", "https://example.com/a", "Example News", [1783136810],
+    "https://example.com/thumb.jpg"
+  ]];
+  const inner = JSON.stringify([articles]);
+  const body = `)]}'\n\n[["wrb.fr","w4opAf",${JSON.stringify(inner)},null,null,null,"generic"]]`;
+  let requestedUrl = "";
+  const result = await fetchTrendingNews(
+    [{ id: 4704319673, lang: "en", geo: "US" }],
+    { fetchImpl: async (url) => { requestedUrl = String(url); return response(body); } }
+  );
+  assert.ok(requestedUrl.includes("rpcids=w4opAf"));
+  assert.deepEqual(result, [{
+    title: "Sample headline",
+    url: "https://example.com/a",
+    source: "Example News",
+    published_at: new Date(1783136810 * 1000).toISOString(),
+    publish_timestamp: 1783136810,
+    thumbnail_url: "https://example.com/thumb.jpg"
+  }]);
+});
+
+test("fetchTrendingNews returns [] for empty refs without fetching", async () => {
+  const { fetchTrendingNews } = await import("../src/client.js");
+  assert.deepEqual(await fetchTrendingNews([], { fetchImpl: async () => { throw new Error("no"); } }), []);
+});

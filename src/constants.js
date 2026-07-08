@@ -7,6 +7,10 @@ export const GOOGLE_TRENDING_RSS_URL = "https://trends.google.com/trending/rss";
 
 export const TRENDING_NOW_RPC_ID = "i0OFE";
 
+// Batch resolver for the news-article references carried on each trending row
+// (row index 11: `[article_id, lang, geo]` triples).
+export const TRENDING_NEWS_RPC_ID = "w4opAf";
+
 export const allowedHours = Object.freeze([4, 24, 48, 168]);
 
 export const allowedStatuses = Object.freeze(["all", "active", "ended"]);

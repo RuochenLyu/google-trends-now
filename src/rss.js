@@ -90,6 +90,9 @@ export function parseTrendingRssXml(xml, options = {}) {
       end_timestamp: null,
       active: null,
       trend_breakdown: allTextForTag(block, "news_item_title"),
+      // RSS carries no resolvable article references; keep the item shape
+      // aligned with the batchexecute path.
+      news_refs: [],
       categories: [],
       explore_url: buildExploreUrl(query, options.geo, options.hours),
       source: "rss_limited",

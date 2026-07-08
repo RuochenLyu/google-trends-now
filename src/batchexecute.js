@@ -1,6 +1,7 @@
 import {
   DEFAULTS,
   GOOGLE_TRENDING_BATCH_URL,
+  TRENDING_NEWS_RPC_ID,
   TRENDING_NOW_RPC_ID,
   sortKeys
 } from "./constants.js";
@@ -33,6 +34,51 @@ export function buildTrendingNowRequest(options = {}) {
     url: `${GOOGLE_TRENDING_BATCH_URL}?${query}`,
     body
   };
+}
+
+/**
+ * Build a w4opAf request resolving news-article references (`news_refs` from
+ * trending rows) into article details.
+ *
+ * @param {Array<{ id: number, lang?: string, geo?: string } | [number, string, string]>} refs
+ * @param {{ hl?: string, geo?: string }} [options]
+ */
+export function buildTrendingNewsRequest(refs, options = {}) {
+  const hl = options.hl ?? DEFAULTS.hl;
+  const triples = refs.map((ref) => (Array.isArray(ref)
+    ? [Number(ref[0]), String(ref[1] ?? "en"), String(ref[2] ?? options.geo ?? DEFAULTS.geo)]
+    : [Number(ref.id), String(ref.lang ?? "en"), String(ref.geo ?? options.geo ?? DEFAULTS.geo)]));
+  // Trailing `3` mirrors the Trending Now UI request; semantics undocumented.
+  const innerPayload = [triples, 3];
+  const requestPayload = [[[
+    TRENDING_NEWS_RPC_ID,
+    JSON.stringify(innerPayload, null, 0),
+    null,
+    "generic"
+  ]]];
+
+  const query = new URLSearchParams({
+    rpcids: TRENDING_NEWS_RPC_ID,
+    "source-path": "/trending",
+    hl
+  });
+  const body = new URLSearchParams({
+    "f.req": JSON.stringify(requestPayload, null, 0)
+  });
+
+  return {
+    url: `${GOOGLE_TRENDING_BATCH_URL}?${query}`,
+    body
+  };
+}
+
+/**
+ * Extract article rows from a parsed w4opAf payload. Each raw article is
+ * `[title, url, source, [timestamp], thumbnail_url]`.
+ */
+export function newsArticlesFromPayload(payload) {
+  const list = Array.isArray(payload) && Array.isArray(payload[0]) ? payload[0] : [];
+  return list.filter((article) => Array.isArray(article) && typeof article[0] === "string");
 }
 
 function stripXssiPrefix(text) {

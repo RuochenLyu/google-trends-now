@@ -9,6 +9,28 @@ export interface CategoryRow {
   name: string;
 }
 
+export interface NewsRef {
+  id: number;
+  lang: string;
+  geo: string;
+}
+
+export interface TrendingNewsArticle {
+  title: string;
+  url: string | null;
+  source: string | null;
+  published_at: string | null;
+  publish_timestamp: number | null;
+  thumbnail_url: string | null;
+}
+
+export interface TrendingNewsOptions {
+  hl?: string;
+  geo?: string;
+  timeoutMs?: number;
+  fetchImpl?: typeof fetch;
+}
+
 export interface TrendingNowItem {
   position: number;
   raw_position: number;
@@ -23,6 +45,7 @@ export interface TrendingNowItem {
   end_timestamp: number | null;
   active: boolean | null;
   trend_breakdown: string[];
+  news_refs: NewsRef[];
   categories: Category[];
   explore_url: string;
   source: "google_trending_now" | "rss_limited";
@@ -70,6 +93,7 @@ export const categories: Record<string, number>;
 export function categoryRows(): CategoryRow[];
 
 export function fetchTrendingNow(options?: TrendingNowOptions): Promise<TrendingNowOutput>;
+export function fetchTrendingNews(refs: Array<NewsRef | [number, string, string]>, options?: TrendingNewsOptions): Promise<TrendingNewsArticle[]>;
 export function fetchTrendingRss(options?: TrendingNowOptions): Promise<TrendingNowOutput>;
 export function normalizeTrendingRow(row: unknown[], options?: {
   position?: number;

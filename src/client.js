@@ -1,4 +1,12 @@
-import { buildTrendingNowRequest, parseBatchexecuteResponse, trendingRowsFromPayload } from "./batchexecute.js";
+import {
+  buildTrendingNewsRequest,
+  buildTrendingNowRequest,
+  newsArticlesFromPayload,
+  parseBatchexecuteResponse,
+  trendingRowsFromPayload
+} from "./batchexecute.js";
+import { TRENDING_NEWS_RPC_ID } from "./constants.js";
+import { isoFromTimestamp, timestampFromList } from "./normalize.js";
 import { buildEnvelope } from "./envelope.js";
 import { applyFiltersAndSort } from "./filter.js";
 import { fetchText } from "./http.js";
@@ -31,6 +39,47 @@ async function fetchGoogleTrendingNow(options) {
   // `rawPayload` is the parsed batchexecute payload before normalization; it is
   // only attached to the envelope when the caller opts in via `includeRaw`.
   return { items, rawPayload: parsed };
+}
+
+/**
+ * Resolve trending-row news references (`item.news_refs`) into article details
+ * via the w4opAf batch RPC. Google-path only; there is no RSS fallback for
+ * this endpoint.
+ *
+ * @param {Array<{ id: number, lang?: string, geo?: string } | [number, string, string]>} refs
+ * @param {{ hl?: string, geo?: string, timeoutMs?: number, fetchImpl?: typeof fetch }} [options]
+ * @returns {Promise<Array<{ title: string, url: string | null, source: string | null,
+ *   published_at: string | null, publish_timestamp: number | null, thumbnail_url: string | null }>>}
+ */
+export async function fetchTrendingNews(refs, options = {}) {
+  if (!Array.isArray(refs) || refs.length === 0) {
+    return [];
+  }
+  const { url, body } = buildTrendingNewsRequest(refs, options);
+  const text = await fetchText(url, {
+    method: "POST",
+    body,
+    fetchImpl: options.fetchImpl ?? options.fetch,
+    timeoutMs: options.timeoutMs ?? options.timeout_ms,
+    headers: {
+      accept: "*/*",
+      "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+      origin: "https://trends.google.com",
+      referer: "https://trends.google.com/trending"
+    }
+  });
+  const payload = parseBatchexecuteResponse(text, TRENDING_NEWS_RPC_ID);
+  return newsArticlesFromPayload(payload).map((article) => {
+    const timestamp = timestampFromList(article[3]);
+    return {
+      title: article[0],
+      url: typeof article[1] === "string" ? article[1] : null,
+      source: typeof article[2] === "string" ? article[2] : null,
+      published_at: isoFromTimestamp(timestamp),
+      publish_timestamp: timestamp,
+      thumbnail_url: typeof article[4] === "string" ? article[4] : null
+    };
+  });
 }
 
 export async function fetchTrendingNow(options = {}) {

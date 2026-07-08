@@ -53,7 +53,7 @@ Category filtering is always applied locally against each row's `categories[]`; 
 ## SDK
 
 ```js
-import { fetchTrendingNow, fetchTrendingRss, formatMarkdown } from "google-trends-now";
+import { fetchTrendingNews, fetchTrendingNow, fetchTrendingRss, formatMarkdown } from "google-trends-now";
 
 const output = await fetchTrendingNow({
   geo: "US",
@@ -64,6 +64,9 @@ const output = await fetchTrendingNow({
 });
 
 console.log(formatMarkdown(output));
+
+const news = await fetchTrendingNews(output.items[0].news_refs.slice(0, 5));
+console.log(news[0]?.title); // resolved article headline
 
 const rss = await fetchTrendingRss({ geo: "US", limit: 10 });
 console.log(rss.fetch_status); // "rss_limited"
