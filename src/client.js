@@ -23,11 +23,14 @@ async function fetchGoogleTrendingNow(options) {
   });
   const parsed = parseBatchexecuteResponse(text);
   const rows = trendingRowsFromPayload(parsed);
-  return rows.map((row, index) => normalizeTrendingRow(row, {
+  const items = rows.map((row, index) => normalizeTrendingRow(row, {
     position: index + 1,
     geo: options.geo,
     hours: options.hours
   }));
+  // `rawPayload` is the parsed batchexecute payload before normalization; it is
+  // only attached to the envelope when the caller opts in via `includeRaw`.
+  return { items, rawPayload: parsed };
 }
 
 export async function fetchTrendingNow(options = {}) {
@@ -36,7 +39,8 @@ export async function fetchTrendingNow(options = {}) {
   const sourceUrl = buildTrendingPageUrl(normalized);
 
   try {
-    const items = applyFiltersAndSort(await fetchGoogleTrendingNow(normalized), normalized);
+    const { items: fetched, rawPayload } = await fetchGoogleTrendingNow(normalized);
+    const items = applyFiltersAndSort(fetched, normalized);
     return buildEnvelope({
       observedAt,
       options: normalized,
@@ -44,9 +48,15 @@ export async function fetchTrendingNow(options = {}) {
       fetchStatus: "success",
       sourceUrl,
       error: null,
-      items
+      items,
+      // Opt-in only: default envelopes stay byte-identical without the key.
+      extra: normalized.includeRaw ? { raw: rawPayload } : {}
     });
   } catch (googleError) {
+    // Raw passthrough is a Google-path capability; fallback and failure
+    // envelopes carry `raw: null` when requested so consumers see one shape.
+    const rawExtra = normalized.includeRaw ? { raw: null } : {};
+
     if (normalized.fallback === "none") {
       return buildEnvelope({
         observedAt,
@@ -55,7 +65,8 @@ export async function fetchTrendingNow(options = {}) {
         fetchStatus: "manual_review_required",
         sourceUrl,
         error: String(googleError?.message ?? googleError),
-        items: []
+        items: [],
+        extra: rawExtra
       });
     }
 
@@ -63,6 +74,7 @@ export async function fetchTrendingNow(options = {}) {
       const rssOutput = await fetchTrendingRss(normalized);
       return {
         ...rssOutput,
+        ...rawExtra,
         observed_at: observedAt,
         error: `Google Trending Now failed: ${googleError.message}; RSS fallback returned limited data`
       };
@@ -74,7 +86,8 @@ export async function fetchTrendingNow(options = {}) {
         fetchStatus: "manual_review_required",
         sourceUrl,
         error: `Google Trending Now failed: ${googleError.message}; RSS fallback failed: ${rssError.message}`,
-        items: []
+        items: [],
+        extra: rawExtra
       });
     }
   }

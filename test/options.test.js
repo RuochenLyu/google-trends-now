@@ -37,3 +37,17 @@ test("validate:false coerces a bad limit to the default instead of throwing", ()
   assert.equal(normalizeFetchOptions({ limit: "abc" }, { validate: false }).limit, 100);
   assert.equal(normalizeFetchOptions({ limit: -3 }, { validate: false }).limit, 100);
 });
+
+test('limit "all" normalizes to Infinity and passes validation', () => {
+  assert.equal(normalizeFetchOptions({ limit: "all" }).limit, Infinity);
+  assert.equal(normalizeFetchOptions({ limit: "ALL" }).limit, Infinity);
+  // Other strings still fail fast.
+  assert.throws(() => normalizeFetchOptions({ limit: "everything" }), /--limit/u);
+});
+
+test("includeRaw defaults to false and only accepts a real boolean opt-in", () => {
+  assert.equal(normalizeFetchOptions({}).includeRaw, false);
+  assert.equal(normalizeFetchOptions({ includeRaw: true }).includeRaw, true);
+  assert.equal(normalizeFetchOptions({ include_raw: true }).includeRaw, true);
+  assert.equal(normalizeFetchOptions({ includeRaw: "yes" }).includeRaw, false);
+});

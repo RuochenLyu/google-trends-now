@@ -35,10 +35,16 @@ export interface TrendingNowOptions {
   category?: string | number;
   status?: "all" | "active" | "ended";
   sort?: "relevance" | "volume" | "recency" | "title";
-  limit?: number;
+  /** Row-pool cap. `"all"` disables truncation. Default: 100. */
+  limit?: number | "all";
   hl?: string;
   fallback?: "rss" | "none";
   timeoutMs?: number;
+  /**
+   * Attach the parsed batchexecute payload (pre-normalization) as `raw` on the
+   * envelope. Google-path only; fallback/failure envelopes carry `raw: null`.
+   */
+  includeRaw?: boolean;
   fetchImpl?: typeof fetch;
 }
 
@@ -56,6 +62,8 @@ export interface TrendingNowOutput {
   category_filter_status?: "unavailable_in_rss";
   status_filter_status?: "unavailable_in_rss";
   items: TrendingNowItem[];
+  /** Present only when `includeRaw: true`; `null` on fallback/failure paths. */
+  raw?: unknown;
 }
 
 export const categories: Record<string, number>;

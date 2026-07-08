@@ -47,3 +47,9 @@ test("sorts by title alphabetically", () => {
   const filtered = applyFiltersAndSort(items, { sort: "title" });
   assert.deepEqual(filtered.map((item) => item.query), ["basketball finals", "mars eclipse"]);
 });
+
+test("limit Infinity disables truncation", () => {
+  const items = Array.from({ length: 250 }, (_, i) => ({ query: `q${i}`, categories: [] }));
+  const result = applyFiltersAndSort(items, { category: "all", status: "all", sort: "relevance", limit: Infinity });
+  assert.equal(result.length, 250);
+});

@@ -20,11 +20,13 @@ Options:
   --category <alias|id>    Local category filter. Default: all
   --status <all|active|ended>
   --sort <relevance|volume|recency|title>
-  --limit <number>         Default: 100
+  --limit <number|all>     Default: 100; "all" disables truncation
   --format <json|ndjson|csv|markdown>
   --hl <locale>            Default: en
   --fallback <rss|none>    Default: rss
   --timeout-ms <number>    Default: 30000
+  --include-raw            Attach the pre-normalization batchexecute payload
+                           as "raw" on the envelope (json format)
   -h, --help               Show this help
   -v, --version            Show the installed version
 
@@ -39,8 +41,11 @@ const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.me
 // camelCased option keys accepted by the commands (see parseArgv).
 const KNOWN_OPTIONS = new Set([
   "geo", "hours", "category", "status", "sort",
-  "limit", "format", "hl", "fallback", "timeoutMs", "help"
+  "limit", "format", "hl", "fallback", "timeoutMs", "includeRaw", "help"
 ]);
+
+// Flags that take no value.
+const BOOLEAN_FLAGS = new Set(["help", "include-raw"]);
 
 function toFlagName(key) {
   return key.replace(/[A-Z]/gu, (letter) => `-${letter.toLowerCase()}`);
@@ -64,8 +69,7 @@ function parseArgv(argv) {
     const [rawName, inlineValue] = token.slice(2).split("=", 2);
     const name = rawName.replace(/-([a-z])/gu, (_, letter) => letter.toUpperCase());
 
-    // `--help` is the only boolean flag.
-    if (rawName === "help") {
+    if (BOOLEAN_FLAGS.has(rawName)) {
       options[name] = true;
       continue;
     }

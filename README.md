@@ -36,11 +36,12 @@ google-trends-now healthcheck
 | `--category` | alias or numeric id | `all` |
 | `--status` | `all` `active` `ended` | `all` |
 | `--sort` | `relevance` `volume` `recency` `title` | `relevance` |
-| `--limit` | integer | `100` |
+| `--limit` | integer or `all` (no truncation) | `100` |
 | `--format` | `json` `ndjson` `csv` `markdown` | `json` |
 | `--hl` | locale | `en` |
 | `--fallback` | `rss` `none` | `rss` |
 | `--timeout-ms` | integer | `30000` |
+| `--include-raw` | flag; attach the pre-normalization batchexecute payload as `raw` (json format) | off |
 | `-h, --help` · `-v, --version` | | |
 
 Category filtering is always applied locally against each row's `categories[]`; the request-side category is only an upstream hint. Unknown categories and misspelled flags (e.g. `--categroy`) fail fast rather than being silently ignored.
@@ -171,11 +172,12 @@ google-trends-now healthcheck
 | `--category` | 别名或数字 id | `all` |
 | `--status` | `all` `active` `ended` | `all` |
 | `--sort` | `relevance` `volume` `recency` `title` | `relevance` |
-| `--limit` | 整数 | `100` |
+| `--limit` | 整数或 `all`（不截断） | `100` |
 | `--format` | `json` `ndjson` `csv` `markdown` | `json` |
 | `--hl` | 语言 locale | `en` |
 | `--fallback` | `rss` `none` | `rss` |
 | `--timeout-ms` | 整数 | `30000` |
+| `--include-raw` | 布尔开关；在 json 输出的信封上附加 normalize 前的原始 batchexecute payload（`raw` 字段） | 关 |
 | `-h, --help` · `-v, --version` | | |
 
 分类过滤一定基于每条结果返回的 `categories[]` 在本地执行；请求参数里的分类只是上游提示。未知分类和拼错的参数（例如 `--categroy`）会直接报错，而不是被静默忽略。

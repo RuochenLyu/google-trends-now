@@ -32,9 +32,13 @@ export function applyFiltersAndSort(items, options = {}) {
   const targetCategoryId = categoryId(options.category ?? DEFAULTS.category);
   const status = options.status ?? DEFAULTS.status;
   const sort = options.sort ?? DEFAULTS.sort;
-  const parsedLimit = Number.parseInt(options.limit ?? DEFAULTS.limit, 10);
-  // A non-numeric limit must not silently truncate to zero items.
-  const limit = Number.isFinite(parsedLimit) && parsedLimit >= 0 ? parsedLimit : DEFAULTS.limit;
+  const rawLimit = options.limit ?? DEFAULTS.limit;
+  const parsedLimit = Number.parseInt(rawLimit, 10);
+  // Infinity (from `limit: "all"`) disables truncation; a non-numeric limit
+  // must not silently truncate to zero items.
+  const limit = rawLimit === Infinity
+    ? Infinity
+    : (Number.isFinite(parsedLimit) && parsedLimit >= 0 ? parsedLimit : DEFAULTS.limit);
 
   let filtered = items.filter((item) => hasCategory(item, targetCategoryId));
 

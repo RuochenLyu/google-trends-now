@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 本文件记录项目的重要变化。
 
+## Unreleased
+
+### English
+- `fetchTrendingNow({ includeRaw: true })` / CLI `--include-raw`: attach the parsed batchexecute payload (pre-normalization) as `raw` on the envelope. Google-path only; fallback/failure envelopes carry `raw: null`. Default output is unchanged (guarded by a key-set regression test).
+- `limit: "all"` (SDK) / `--limit all` (CLI): disable row-pool truncation and expose the full Trending Now pool (observed ~2000+ rows on a 168h/US window vs the default cap of 100).
+
+### 简体中文
+- `fetchTrendingNow({ includeRaw: true })` / CLI `--include-raw`：在信封上附加 normalize 前的原始 batchexecute payload（`raw` 字段）。仅 Google 主路径提供；降级/失败信封为 `raw: null`。默认输出不变（键集回归测试钉住）。
+- `limit: "all"`（SDK）/ `--limit all`（CLI）：关闭行池截断，暴露完整 Trending Now 池（168h/US 实测约 2000+ 行，默认上限 100）。
+
 ## 1.0.0 - 2026-07-06
 
 ### English

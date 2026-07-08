@@ -21,20 +21,29 @@ import { categoryId } from "./categories.js";
  * @returns {{
  *   geo: string, hours: number, category: string | number, status: string,
  *   sort: string, limit: number, hl: string, fallback: string,
- *   timeoutMs: number, fetchImpl?: typeof fetch
+ *   timeoutMs: number, includeRaw: boolean, fetchImpl?: typeof fetch
  * }}
  */
 export function normalizeFetchOptions(raw = {}, { validate = true } = {}) {
+  // `limit: "all"` (SDK) / `--limit all` (CLI) disables row-pool truncation.
+  // Normalized to Infinity so filter.js can slice uniformly.
+  const rawLimit = raw.limit ?? DEFAULTS.limit;
+  const limit = typeof rawLimit === "string" && rawLimit.toLowerCase() === "all"
+    ? Infinity
+    : Number(rawLimit);
+
   const options = {
     geo: String(raw.geo ?? DEFAULTS.geo).toUpperCase(),
     hours: Number(raw.hours ?? DEFAULTS.hours),
     category: raw.category ?? DEFAULTS.category,
     status: raw.status ?? DEFAULTS.status,
     sort: raw.sort ?? DEFAULTS.sort,
-    limit: Number(raw.limit ?? DEFAULTS.limit),
+    limit,
     hl: raw.hl ?? DEFAULTS.hl,
     fallback: raw.fallback ?? DEFAULTS.fallback,
     timeoutMs: Number(raw.timeoutMs ?? raw.timeout_ms ?? DEFAULTS.timeoutMs),
+    // Attach the pre-normalization batchexecute payload to the envelope.
+    includeRaw: raw.includeRaw === true || raw.include_raw === true,
     fetchImpl: raw.fetchImpl ?? raw.fetch
   };
 
@@ -53,15 +62,15 @@ export function normalizeFetchOptions(raw = {}, { validate = true } = {}) {
     }
     // Throws on an unknown non-numeric category; numeric ids pass for forward compat.
     categoryId(options.category);
-    if (!Number.isInteger(options.limit) || options.limit < 0) {
-      throw new Error("--limit must be a non-negative integer");
+    if (options.limit !== Infinity && (!Number.isInteger(options.limit) || options.limit < 0)) {
+      throw new Error('--limit must be a non-negative integer or "all"');
     }
     if (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0) {
       throw new Error("--timeout-ms must be a positive number");
     }
   } else {
     // Non-validating callers still get safe values instead of NaN.
-    if (!Number.isInteger(options.limit) || options.limit < 0) {
+    if (options.limit !== Infinity && (!Number.isInteger(options.limit) || options.limit < 0)) {
       options.limit = DEFAULTS.limit;
     }
     if (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0) {

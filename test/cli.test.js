@@ -267,3 +267,31 @@ test("CLI healthcheck exits 0 on a successful primary fetch", async () => {
   assert.equal(output.ok, true);
   assert.equal(output.fetch_status, "success");
 });
+
+test("CLI --include-raw adds raw to the json envelope; default stays clean", async () => {
+  const fixture = await readFile(new URL("./fixtures/batchexecute.txt", import.meta.url), "utf8");
+  const io = (sink) => ({
+    fetchImpl: async () => response(fixture),
+    stdout: (text) => { sink.out += text; },
+    stderr: () => {}
+  });
+
+  const plain = { out: "" };
+  assert.equal(await main(["trending", "--geo", "US", "--format", "json"], io(plain)), 0);
+  assert.ok(!("raw" in JSON.parse(plain.out)));
+
+  const withRaw = { out: "" };
+  assert.equal(await main(["trending", "--geo", "US", "--format", "json", "--include-raw"], io(withRaw)), 0);
+  assert.ok(Array.isArray(JSON.parse(withRaw.out).raw));
+});
+
+test('CLI accepts --limit all', async () => {
+  const fixture = await readFile(new URL("./fixtures/batchexecute.txt", import.meta.url), "utf8");
+  let out = "";
+  const code = await main(
+    ["trending", "--geo", "US", "--format", "json", "--limit", "all"],
+    { fetchImpl: async () => response(fixture), stdout: (t) => { out += t; }, stderr: () => {} }
+  );
+  assert.equal(code, 0);
+  assert.equal(JSON.parse(out).items.length, 2);
+});
