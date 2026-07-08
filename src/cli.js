@@ -2,10 +2,14 @@ import { readFileSync } from "node:fs";
 
 import { DEFAULTS, allowedFormats } from "./constants.js";
 import { categoryRows } from "./categories.js";
-import { fetchTrendingNow } from "./client.js";
+import { fetchTrendingNews, fetchTrendingNow } from "./client.js";
 import { formatOutput } from "./formatters.js";
 import { normalizeFetchOptions } from "./options.js";
 import { fetchTrendingRss } from "./rss.js";
+
+// Upper bound on `--with-news`: news resolution is a serial per-item fetch, so
+// the flag stays small to keep the extra request fan-out bounded.
+const MAX_WITH_NEWS = 10;
 
 const usage = `Usage:
   google-trends-now trending [options]
@@ -25,8 +29,13 @@ Options:
   --hl <locale>            Default: en
   --fallback <rss|none>    Default: rss
   --timeout-ms <number>    Default: 30000
+  --retries <n>            Retry transient 429/5xx/network failures n times.
+                           Default: 0 (off)
   --include-raw            Attach the pre-normalization batchexecute payload
-                           as "raw" on the envelope (json format)
+                           as "raw" on the envelope (json format only)
+  --with-news <n>          Resolve news articles for the first n items into a
+                           "news" field (trending command, json format only;
+                           1-10)
   -h, --help               Show this help
   -v, --version            Show the installed version
 
@@ -41,7 +50,8 @@ const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.me
 // camelCased option keys accepted by the commands (see parseArgv).
 const KNOWN_OPTIONS = new Set([
   "geo", "hours", "category", "status", "sort",
-  "limit", "format", "hl", "fallback", "timeoutMs", "includeRaw", "help"
+  "limit", "format", "hl", "fallback", "timeoutMs", "retries",
+  "includeRaw", "withNews", "help"
 ]);
 
 // Flags that take no value.
@@ -103,6 +113,23 @@ function normalizeOptions(rawOptions = {}) {
 
   const options = normalizeFetchOptions(rawOptions, { validate: true });
   options.format = format;
+
+  // `raw` and `news` only have a home in the json envelope; pairing either with
+  // a flat format is a mistake, so fail fast instead of silently dropping data.
+  if (options.includeRaw && format !== "json") {
+    throw new Error("--include-raw requires --format json");
+  }
+  if (rawOptions.withNews !== undefined) {
+    if (format !== "json") {
+      throw new Error("--with-news requires --format json");
+    }
+    const withNews = Number(rawOptions.withNews);
+    if (!Number.isInteger(withNews) || withNews < 1 || withNews > MAX_WITH_NEWS) {
+      throw new Error(`--with-news must be an integer between 1 and ${MAX_WITH_NEWS}`);
+    }
+    options.withNews = withNews;
+  }
+
   return options;
 }
 
@@ -150,6 +177,26 @@ async function runHealthcheck(options) {
   };
 }
 
+/**
+ * Resolve news articles for the first `count` items (capped at the pool size)
+ * and attach them as `item.news`. Calls are serial to keep the extra request
+ * fan-out gentle on the undocumented endpoint. Items with no `news_refs` (e.g.
+ * the RSS fallback path) resolve to `[]` without a network round-trip.
+ */
+async function attachNews(output, count, options) {
+  const limit = Math.min(count, output.items.length);
+  for (let index = 0; index < limit; index += 1) {
+    const item = output.items[index];
+    item.news = await fetchTrendingNews(item.news_refs, {
+      hl: options.hl,
+      geo: options.geo,
+      timeoutMs: options.timeoutMs,
+      retries: options.retries,
+      fetchImpl: options.fetchImpl
+    });
+  }
+}
+
 export async function main(argv, io = {}) {
   const stdout = io.stdout ?? ((text) => process.stdout.write(text));
   const stderr = io.stderr ?? ((text) => process.stderr.write(text));
@@ -174,6 +221,12 @@ export async function main(argv, io = {}) {
     const options = normalizeOptions(rawOptions);
     const fetchImpl = io.fetchImpl ?? io.fetch;
 
+    // News resolution rides on each trending row's `news_refs`, which only the
+    // trending command produces; reject the flag elsewhere rather than no-op.
+    if (options.withNews && command !== "trending") {
+      throw new Error("--with-news is only supported by the trending command");
+    }
+
     if (command === "categories") {
       if (rawOptions.category !== undefined) {
         throw new Error("categories command does not accept --category");
@@ -195,6 +248,9 @@ export async function main(argv, io = {}) {
     }
 
     const output = await fetchTrendingNow({ ...options, fetchImpl });
+    if (options.withNews) {
+      await attachNews(output, options.withNews, { ...options, fetchImpl });
+    }
     stdout(formatOutput(output, options.format));
     return 0;
   } catch (error) {

@@ -28,6 +28,8 @@ export interface TrendingNewsOptions {
   hl?: string;
   geo?: string;
   timeoutMs?: number;
+  /** Extra retry attempts for transient (429/5xx/network) failures. Default: 0. */
+  retries?: number;
   fetchImpl?: typeof fetch;
 }
 
@@ -50,6 +52,11 @@ export interface TrendingNowItem {
   explore_url: string;
   source: "google_trending_now" | "rss_limited";
   rss_pub_date?: string | null;
+  /**
+   * Resolved news articles. Present only when the CLI `--with-news <n>` flag
+   * attached them (trending command, json format); absent from the SDK path.
+   */
+  news?: TrendingNewsArticle[];
 }
 
 export interface TrendingNowOptions {
@@ -63,6 +70,8 @@ export interface TrendingNowOptions {
   hl?: string;
   fallback?: "rss" | "none";
   timeoutMs?: number;
+  /** Extra retry attempts for transient (429/5xx/network) failures. Default: 0. */
+  retries?: number;
   /**
    * Attach the parsed batchexecute payload (pre-normalization) as `raw` on the
    * envelope. Google-path only; fallback/failure envelopes carry `raw: null`.
@@ -114,5 +123,17 @@ export function parseTrendingRssXml(
 export function buildTrendingNowRequest(
   options?: TrendingNowOptions
 ): { url: string; body: URLSearchParams };
+export function buildTrendingNewsRequest(
+  refs: Array<NewsRef | [number, string, string]>,
+  options?: { hl?: string; geo?: string }
+): { url: string; body: URLSearchParams };
 export function parseBatchexecuteResponse(text: string, rpcId?: string): unknown;
 export function trendingRowsFromPayload(payload: unknown): unknown[];
+export function newsArticlesFromPayload(payload: unknown): unknown[];
+
+/** Structured error thrown by the HTTP layer on a non-2xx response. */
+export class FetchHttpError extends Error {
+  status: number;
+  url: string;
+  bodySnippet: string;
+}

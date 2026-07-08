@@ -22,6 +22,7 @@ async function fetchGoogleTrendingNow(options) {
     body,
     fetchImpl: options.fetchImpl,
     timeoutMs: options.timeoutMs,
+    retries: options.retries,
     headers: {
       accept: "*/*",
       "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -47,7 +48,7 @@ async function fetchGoogleTrendingNow(options) {
  * this endpoint.
  *
  * @param {Array<{ id: number, lang?: string, geo?: string } | [number, string, string]>} refs
- * @param {{ hl?: string, geo?: string, timeoutMs?: number, fetchImpl?: typeof fetch }} [options]
+ * @param {{ hl?: string, geo?: string, timeoutMs?: number, retries?: number, fetchImpl?: typeof fetch }} [options]
  * @returns {Promise<Array<{ title: string, url: string | null, source: string | null,
  *   published_at: string | null, publish_timestamp: number | null, thumbnail_url: string | null }>>}
  */
@@ -61,6 +62,7 @@ export async function fetchTrendingNews(refs, options = {}) {
     body,
     fetchImpl: options.fetchImpl ?? options.fetch,
     timeoutMs: options.timeoutMs ?? options.timeout_ms,
+    retries: options.retries,
     headers: {
       accept: "*/*",
       "content-type": "application/x-www-form-urlencoded;charset=UTF-8",

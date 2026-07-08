@@ -295,3 +295,109 @@ test('CLI accepts --limit all', async () => {
   assert.equal(code, 0);
   assert.equal(JSON.parse(out).items.length, 2);
 });
+
+test("CLI --include-raw with a non-json format fails fast (exit 2), no fetch", async () => {
+  for (const format of ["ndjson", "csv", "markdown"]) {
+    let stderr = "";
+    let fetched = false;
+    const code = await main(["trending", "--include-raw", "--format", format], {
+      fetchImpl: async () => { fetched = true; throw new Error("should not fetch"); },
+      stdout: () => {},
+      stderr: (text) => { stderr += text; }
+    });
+    assert.equal(code, 2);
+    assert.equal(fetched, false);
+    assert.match(stderr, /--include-raw requires --format json/u);
+  }
+});
+
+// A trending body with one row carrying a news reference at index 11, plus the
+// matching w4opAf news response; the fetch mock routes by the `rpcids` param.
+function trendingBodyWithNewsRef() {
+  const rows = [
+    [
+      "solar eclipse", null, "US", [1710000000], null, null, 50000, null, 200,
+      ["solar eclipse"], [18], [[4704319673, "en", "US"]], "solar eclipse"
+    ],
+    [
+      "market rally", null, "US", [1710001200], null, null, 30000, null, 50,
+      ["market rally"], [3], [], "market rally"
+    ]
+  ];
+  const inner = JSON.stringify([null, rows]);
+  return `)]}'\n\n[["wrb.fr","i0OFE",${JSON.stringify(inner)},null,null,null,"generic"]]`;
+}
+
+function newsBody() {
+  const articles = [[
+    "Eclipse coverage", "https://example.com/a", "Example News", [1783136810],
+    "https://example.com/thumb.jpg"
+  ]];
+  const inner = JSON.stringify([articles]);
+  return `)]}'\n\n[["wrb.fr","w4opAf",${JSON.stringify(inner)},null,null,null,"generic"]]`;
+}
+
+test("CLI --with-news resolves articles into items[].news (trending, json)", async () => {
+  let newsCalls = 0;
+  const fetchImpl = async (url) => {
+    const target = String(url);
+    if (target.includes("rpcids=w4opAf")) {
+      newsCalls += 1;
+      return response(newsBody());
+    }
+    if (target.includes("rpcids=i0OFE")) {
+      return response(trendingBodyWithNewsRef());
+    }
+    throw new Error(`unexpected url ${target}`);
+  };
+
+  let stdout = "";
+  const code = await main(["trending", "--with-news", "1", "--format", "json"], {
+    fetchImpl,
+    stdout: (text) => { stdout += text; },
+    stderr: () => {}
+  });
+
+  assert.equal(code, 0);
+  assert.equal(newsCalls, 1);
+  const output = JSON.parse(stdout);
+  assert.equal(output.items[0].news.length, 1);
+  assert.equal(output.items[0].news[0].title, "Eclipse coverage");
+  // Items past the requested count are left untouched.
+  assert.ok(!("news" in output.items[1]));
+});
+
+test("CLI --with-news with a non-json format fails fast (exit 2)", async () => {
+  let stderr = "";
+  const code = await main(["trending", "--with-news", "3", "--format", "csv"], {
+    fetchImpl: async () => { throw new Error("should not fetch"); },
+    stdout: () => {},
+    stderr: (text) => { stderr += text; }
+  });
+  assert.equal(code, 2);
+  assert.match(stderr, /--with-news requires --format json/u);
+});
+
+test("CLI --with-news rejects an out-of-range count", async () => {
+  for (const value of ["0", "11", "abc"]) {
+    let stderr = "";
+    const code = await main(["trending", "--with-news", value, "--format", "json"], {
+      fetchImpl: async () => { throw new Error("should not fetch"); },
+      stdout: () => {},
+      stderr: (text) => { stderr += text; }
+    });
+    assert.equal(code, 2);
+    assert.match(stderr, /--with-news must be an integer between 1 and 10/u);
+  }
+});
+
+test("CLI --with-news is rejected outside the trending command", async () => {
+  let stderr = "";
+  const code = await main(["rss", "--with-news", "2", "--format", "json"], {
+    fetchImpl: async () => { throw new Error("should not fetch"); },
+    stdout: () => {},
+    stderr: (text) => { stderr += text; }
+  });
+  assert.equal(code, 2);
+  assert.match(stderr, /--with-news is only supported by the trending command/u);
+});

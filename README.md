@@ -41,10 +41,14 @@ google-trends-now healthcheck
 | `--hl` | locale | `en` |
 | `--fallback` | `rss` `none` | `rss` |
 | `--timeout-ms` | integer | `30000` |
-| `--include-raw` | flag; attach the pre-normalization batchexecute payload as `raw` (json format) | off |
+| `--retries` | integer; retry transient 429/5xx/network failures | `0` |
+| `--include-raw` | flag; attach the pre-normalization batchexecute payload as `raw` (json format only) | off |
+| `--with-news` | integer `1`-`10`; resolve news articles for the first n items into a `news` field (trending command, json format only) | off |
 | `-h, --help` · `-v, --version` | | |
 
 Category filtering is always applied locally against each row's `categories[]`; the request-side category is only an upstream hint. Unknown categories and misspelled flags (e.g. `--categroy`) fail fast rather than being silently ignored.
+
+`--retries` opts into a restrained retry that only covers transient 429/5xx/network failures (a 429 honors `Retry-After`, capped at 30s); it is a defense against a single blip, not a way to grind past rate limiting. `--include-raw` and `--with-news` require `--format json` and fail fast otherwise.
 
 - **Exit codes:** `0` success · `1` healthcheck not-ok · `2` usage/validation/runtime error.
 - **`healthcheck`** probes the primary endpoint only (forces `--fallback none`, so RSS can't mask an outage) and always prints JSON `{ ok, elapsed_ms, fetch_status, source, error, item_count }`. `ok` is `true` only on `fetch_status: "success"` with at least one item; the process exits `0`/`1` accordingly.
@@ -135,12 +139,23 @@ MIT licensed ([LICENSE](LICENSE)). "Google" and "Google Trends" are trademarks o
 
 ```bash
 npm test                                  # node --test, no network
+npm run lint                              # eslint (flat config)
 node bin/google-trends-now.mjs categories # offline smoke check
 npx . trending --geo US --limit 5         # run from a checkout
 npm pack --dry-run                        # inspect the publishable tarball
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CHANGELOG.md](CHANGELOG.md).
+
+## Releasing
+
+Publishing is automated by the `release` workflow on a pushed `v*` tag (npm publish with provenance). One-time setup: add an `NPM_TOKEN` repository secret (an npm automation token). To cut a release:
+
+1. Bump `version` in `package.json` and date the `## Unreleased` section in `CHANGELOG.md`.
+2. Commit, then tag: `git tag vX.Y.Z`.
+3. Push the tag: `git push origin vX.Y.Z`.
+
+The workflow checks out the tag, installs, runs the tests, and publishes `--provenance --access public`.
 
 ---
 
@@ -180,10 +195,14 @@ google-trends-now healthcheck
 | `--hl` | 语言 locale | `en` |
 | `--fallback` | `rss` `none` | `rss` |
 | `--timeout-ms` | 整数 | `30000` |
-| `--include-raw` | 布尔开关；在 json 输出的信封上附加 normalize 前的原始 batchexecute payload（`raw` 字段） | 关 |
+| `--retries` | 整数；对瞬时的 429/5xx/网络失败重试 | `0` |
+| `--include-raw` | 布尔开关；在 json 输出的信封上附加 normalize 前的原始 batchexecute payload（`raw` 字段，仅 json 格式） | 关 |
+| `--with-news` | 整数 `1`-`10`；为前 n 条结果解析新闻文章并写入 `news` 字段（仅 trending 命令 + json 格式） | 关 |
 | `-h, --help` · `-v, --version` | | |
 
 分类过滤一定基于每条结果返回的 `categories[]` 在本地执行；请求参数里的分类只是上游提示。未知分类和拼错的参数（例如 `--categroy`）会直接报错，而不是被静默忽略。
+
+`--retries` 开启的是克制的重试，只覆盖瞬时的 429/5xx/网络失败（429 会尊重 `Retry-After`，封顶 30 秒），用于抵抗单次抖动，而不是绕过限流。`--include-raw` 和 `--with-news` 都要求 `--format json`，否则直接报错。
 
 - **退出码：** `0` 成功 · `1` healthcheck not-ok · `2` 用法/校验/运行时错误。
 - **`healthcheck`** 只探测主接口（内部强制 `--fallback none`，RSS 兜底不会掩盖故障），并且始终输出 JSON `{ ok, elapsed_ms, fetch_status, source, error, item_count }`。只有 `fetch_status: "success"` 且至少一条结果时 `ok` 才为 `true`，进程据此退出 `0`/`1`。

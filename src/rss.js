@@ -114,6 +114,7 @@ export async function fetchTrendingRss(options = {}) {
   const xml = await fetchText(sourceUrl, {
     fetchImpl: normalized.fetchImpl,
     timeoutMs: normalized.timeoutMs,
+    retries: normalized.retries,
     headers: {
       accept: "application/rss+xml,text/xml,*/*"
     }

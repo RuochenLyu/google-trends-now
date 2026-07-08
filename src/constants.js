@@ -51,7 +51,8 @@ export const DEFAULTS = Object.freeze({
   hl: "en",
   fallback: "rss",
   format: "json",
-  timeoutMs: 30000
+  timeoutMs: 30000,
+  retries: 0
 });
 
 /** Maximum number of trend-breakdown terms rendered in the compact Markdown table. */

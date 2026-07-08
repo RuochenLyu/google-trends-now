@@ -38,6 +38,20 @@ test("validate:false coerces a bad limit to the default instead of throwing", ()
   assert.equal(normalizeFetchOptions({ limit: -3 }, { validate: false }).limit, 100);
 });
 
+test("retries defaults to 0, accepts a non-negative integer, and fails fast otherwise", () => {
+  assert.equal(normalizeFetchOptions({}).retries, 0);
+  assert.equal(normalizeFetchOptions({ retries: 3 }).retries, 3);
+  assert.equal(normalizeFetchOptions({ retries: "2" }).retries, 2);
+  assert.throws(() => normalizeFetchOptions({ retries: -1 }), /--retries/u);
+  assert.throws(() => normalizeFetchOptions({ retries: 1.5 }), /--retries/u);
+  assert.throws(() => normalizeFetchOptions({ retries: "abc" }), /--retries/u);
+});
+
+test("validate:false coerces a bad retries to the default instead of throwing", () => {
+  assert.equal(normalizeFetchOptions({ retries: -1 }, { validate: false }).retries, 0);
+  assert.equal(normalizeFetchOptions({ retries: "abc" }, { validate: false }).retries, 0);
+});
+
 test('limit "all" normalizes to Infinity and passes validation', () => {
   assert.equal(normalizeFetchOptions({ limit: "all" }).limit, Infinity);
   assert.equal(normalizeFetchOptions({ limit: "ALL" }).limit, Infinity);

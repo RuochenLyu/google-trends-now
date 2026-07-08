@@ -21,7 +21,7 @@ import { categoryId } from "./categories.js";
  * @returns {{
  *   geo: string, hours: number, category: string | number, status: string,
  *   sort: string, limit: number, hl: string, fallback: string,
- *   timeoutMs: number, includeRaw: boolean, fetchImpl?: typeof fetch
+ *   timeoutMs: number, retries: number, includeRaw: boolean, fetchImpl?: typeof fetch
  * }}
  */
 export function normalizeFetchOptions(raw = {}, { validate = true } = {}) {
@@ -42,6 +42,8 @@ export function normalizeFetchOptions(raw = {}, { validate = true } = {}) {
     hl: raw.hl ?? DEFAULTS.hl,
     fallback: raw.fallback ?? DEFAULTS.fallback,
     timeoutMs: Number(raw.timeoutMs ?? raw.timeout_ms ?? DEFAULTS.timeoutMs),
+    // Extra retry attempts for transient HTTP failures; default 0 (off).
+    retries: Number(raw.retries ?? DEFAULTS.retries),
     // Attach the pre-normalization batchexecute payload to the envelope.
     includeRaw: raw.includeRaw === true || raw.include_raw === true,
     fetchImpl: raw.fetchImpl ?? raw.fetch
@@ -68,6 +70,9 @@ export function normalizeFetchOptions(raw = {}, { validate = true } = {}) {
     if (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0) {
       throw new Error("--timeout-ms must be a positive number");
     }
+    if (!Number.isInteger(options.retries) || options.retries < 0) {
+      throw new Error("--retries must be a non-negative integer");
+    }
   } else {
     // Non-validating callers still get safe values instead of NaN.
     if (options.limit !== Infinity && (!Number.isInteger(options.limit) || options.limit < 0)) {
@@ -75,6 +80,9 @@ export function normalizeFetchOptions(raw = {}, { validate = true } = {}) {
     }
     if (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0) {
       options.timeoutMs = DEFAULTS.timeoutMs;
+    }
+    if (!Number.isInteger(options.retries) || options.retries < 0) {
+      options.retries = DEFAULTS.retries;
     }
   }
 

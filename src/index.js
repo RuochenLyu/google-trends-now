@@ -6,6 +6,7 @@ export {
   formatMarkdown,
   formatNdjson
 } from "./formatters.js";
+export { FetchHttpError } from "./http.js";
 export { normalizeTrendingRow } from "./normalize.js";
 export { fetchTrendingRss, parseTrendingRssXml } from "./rss.js";
 

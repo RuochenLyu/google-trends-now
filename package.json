@@ -26,7 +26,11 @@
   ],
   "scripts": {
     "test": "node --test",
-    "prepublishOnly": "npm test"
+    "lint": "eslint .",
+    "prepublishOnly": "npm test && npm run lint"
+  },
+  "publishConfig": {
+    "provenance": true
   },
   "engines": {
     "node": ">=22"
@@ -48,5 +52,9 @@
   "homepage": "https://github.com/RuochenLyu/google-trends-now#readme",
   "bugs": {
     "url": "https://github.com/RuochenLyu/google-trends-now/issues"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0"
   }
 }
