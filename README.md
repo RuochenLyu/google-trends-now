@@ -11,6 +11,10 @@ Unofficial CLI and Node.js client for **Google Trends Trending Now**, with an RS
 
 > Not an official Google client. It reads the current Trending Now web data path and falls back to Google Trends RSS when that path fails. RSS is a limited best-effort fallback, not the full Trending Now pool. Google's official Trends API alpha targets scaled search-interest data and does not yet cover this hot-word discovery use case.
 
+![google-trends-now: piping trending topics through jq](assets/demo.png)
+
+*Live snapshot — `npx google-trends-now trending --geo US --hours 48 --sort volume --limit 5 --format json | jq '...'`. Actual output changes with the news cycle.*
+
 ## Install
 
 Requires Node.js >= 22 (built-in `fetch`, `AbortSignal.timeout`, `Array.prototype.toSorted`).
