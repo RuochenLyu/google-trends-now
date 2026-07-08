@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 本文件记录项目的重要变化。
 
-## Unreleased
+## 1.1.0 - 2026-07-08
 
 ### English
 - `retries` option (SDK) / CLI `--retries <n>`: opt into a restrained retry for transient failures only (429, 5xx, and network errors). A 429 honors `Retry-After` (seconds or an HTTP date, capped at 30s); everything else uses a short linear backoff. Default 0, so behavior is unchanged unless opted in — a defense against a single blip, not a way to grind past rate limiting.
