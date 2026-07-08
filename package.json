@@ -29,9 +29,6 @@
     "lint": "eslint .",
     "prepublishOnly": "npm test && npm run lint"
   },
-  "publishConfig": {
-    "provenance": true
-  },
   "engines": {
     "node": ">=22"
   },

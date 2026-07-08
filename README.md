@@ -149,13 +149,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CHANGEL
 
 ## Releasing
 
-Publishing is automated by the `release` workflow on a pushed `v*` tag (npm publish with provenance). One-time setup: add an `NPM_TOKEN` repository secret (an npm automation token). To cut a release:
+Releases are cut manually (low release cadence does not justify automation):
 
-1. Bump `version` in `package.json` and date the `## Unreleased` section in `CHANGELOG.md`.
-2. Commit, then tag: `git tag vX.Y.Z`.
-3. Push the tag: `git push origin vX.Y.Z`.
-
-The workflow checks out the tag, installs, runs the tests, and publishes `--provenance --access public`.
+1. Bump `version` in `package.json` and date the `## Unreleased` section in `CHANGELOG.md`; commit and tag `vX.Y.Z`.
+2. `npm publish` — `prepublishOnly` runs the tests and lint automatically.
 
 ---
 

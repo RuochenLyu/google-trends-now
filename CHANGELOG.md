@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - CLI `--with-news <n>` (trending command, json format): resolve news articles for the first n items (1-10) into a `news` field via `fetchTrendingNews`.
 - CLI `--include-raw` and `--with-news` now fail fast (exit 2) when combined with a non-json format instead of silently dropping data.
 - Completed the bundled `index.d.ts` (added `buildTrendingNewsRequest`, `newsArticlesFromPayload`, `FetchHttpError`, and the `retries` option) and added an export-drift guard test.
-- Added an ESLint flat config (`npm run lint`) and a CI lint job, plus a tag-triggered `release` workflow that publishes with provenance.
+- Added an ESLint flat config (`npm run lint`) and a CI lint job.
 - `fetchTrendingNow({ includeRaw: true })` / CLI `--include-raw`: attach the parsed batchexecute payload (pre-normalization) as `raw` on the envelope. Google-path only; fallback/failure envelopes carry `raw: null`. Default output is unchanged (guarded by a key-set regression test).
 - `limit: "all"` (SDK) / `--limit all` (CLI): disable row-pool truncation and expose the full Trending Now pool (observed ~2000+ rows on a 168h/US window vs the default cap of 100).
 - `fetchTrendingNews(refs)`: resolve the news-article references carried on each trending row (new `items[].news_refs`, from the w4opAf batch RPC) into `{ title, url, source, published_at, thumbnail_url }`. Google-path only. Items (both paths) now include a `news_refs` array — an additive schema change.
@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 - CLI `--with-news <n>`（trending 命令 + json 格式）：通过 `fetchTrendingNews` 为前 n 条结果（1-10）解析新闻文章并写入 `news` 字段。
 - CLI `--include-raw` 和 `--with-news` 与非 json 格式组合时改为快速失败（退出码 2），而不是静默丢弃数据。
 - 补齐随包 `index.d.ts`（新增 `buildTrendingNewsRequest`、`newsArticlesFromPayload`、`FetchHttpError` 及 `retries` 选项），并新增导出漂移守卫测试。
-- 新增 ESLint flat config（`npm run lint`）和 CI lint job，以及由 tag 触发、带 provenance 发布的 `release` 工作流。
+- 新增 ESLint flat config（`npm run lint`）和 CI lint job。
 - `fetchTrendingNow({ includeRaw: true })` / CLI `--include-raw`：在信封上附加 normalize 前的原始 batchexecute payload（`raw` 字段）。仅 Google 主路径提供；降级/失败信封为 `raw: null`。默认输出不变（键集回归测试钉住）。
 - `limit: "all"`（SDK）/ `--limit all`（CLI）：关闭行池截断，暴露完整 Trending Now 池（168h/US 实测约 2000+ 行，默认上限 100）。
 - `fetchTrendingNews(refs)`：把 trending 行携带的新闻引用（新增 `items[].news_refs`，来自 w4opAf 批量 RPC）解析为 `{ title, url, source, published_at, thumbnail_url }`。仅 Google 主路径。两条路径的 items 均新增 `news_refs` 数组——加法式 schema 变更。
