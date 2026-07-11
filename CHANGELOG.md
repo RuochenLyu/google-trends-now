@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 本文件记录项目的重要变化。
 
-## 1.1.1
+## 1.1.1 - 2026-07-11
 
 - Add missing category id 1 (`Autos and Vehicles`) to `categoryNames`, and the `autos_and_vehicles` / `beauty_and_fashion` request aliases. Previously rows in category 1 surfaced with the bare name `"1"`.
 
