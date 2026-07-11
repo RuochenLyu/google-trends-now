@@ -30,6 +30,11 @@ test("defaults to all when the value is omitted", () => {
 
 test("categoryName maps known ids and echoes unknown ones", () => {
   assert.equal(categoryName(18), "Technology");
+  // Google's category ids are alphabetical: id 1 sits between All and Beauty
+  // and Fashion. A missing row here leaks bare "1" names downstream.
+  assert.equal(categoryName(1), "Autos and Vehicles");
+  assert.equal(categoryId("autos_and_vehicles"), 1);
+  assert.equal(categoryId("beauty_and_fashion"), 2);
   assert.equal(categoryName(999), "999");
 });
 

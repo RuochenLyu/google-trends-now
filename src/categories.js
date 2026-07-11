@@ -1,5 +1,7 @@
 export const categories = Object.freeze({
   all: 0,
+  autos_and_vehicles: 1,
+  beauty_and_fashion: 2,
   business_and_finance: 3,
   entertainment: 4,
   food_and_drink: 5,
@@ -21,6 +23,7 @@ export const categories = Object.freeze({
 
 export const categoryNames = Object.freeze({
   0: "All",
+  1: "Autos and Vehicles",
   2: "Beauty and Fashion",
   3: "Business and Finance",
   4: "Entertainment",
