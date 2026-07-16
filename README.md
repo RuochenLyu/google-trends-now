@@ -15,6 +15,10 @@ Unofficial CLI and Node.js client for **Google Trends Trending Now**, with an RS
 
 *Live snapshot — `npx google-trends-now trending --geo US --hours 48 --sort volume --limit 5 --format json | jq '...'`. Actual output changes with the news cycle.*
 
+## Used in production
+
+- [RayTally](https://raytally.com/en/) — a fully automated product-idea daily that uses `google-trends-now` to collect Google Trends signals alongside Hacker News and Product Hunt.
+
 ## Install
 
 Requires Node.js >= 22 (built-in `fetch`, `AbortSignal.timeout`, `Array.prototype.toSorted`).
@@ -165,6 +169,10 @@ Releases are cut manually (low release cadence does not justify automation):
 非官方 Google Trends **Trending Now** 命令行工具和 Node.js SDK，带 RSS 兜底。零运行时依赖。
 
 > 不是 Google 官方客户端。它优先读取当前 Trending Now 网页数据路径，失败时降级读取 Google Trends RSS。RSS 只是有限的 best-effort 兜底，不是完整 Trending Now 池。Google 官方 Trends API alpha 面向可缩放的搜索兴趣数据，暂不覆盖本项目的热词发现用途。
+
+## 使用案例
+
+- [萤录 RayTally](https://raytally.com/) —— 全自动产品灵感日刊，使用 `google-trends-now` 采集 Google 趋势信号，并结合 Hacker News、Product Hunt 等公开信号生成每日产品灵感。
 
 ## 安装
 
